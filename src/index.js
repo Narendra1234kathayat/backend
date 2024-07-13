@@ -27,11 +27,16 @@ dotenv.config({
 //import userrouter
 import userrouter from "./Routes/user.routes.js";
 import videoRouter from "./Routes/video.routes.js";
-import likeRouter from "./Routes/like.routes.js"
+import likeRouter from "./Routes/like.routes.js";
+import subscriptionRouter from "./Routes/subscription.routes.js";
+import commentRouter  from  "./Routes/comment.routes.js"
+
 //router user
 app.use("/api/v1/users", userrouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/likes",likeRouter);
+app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/subscriptions",subscriptionRouter);
 
 
 connectDB()
