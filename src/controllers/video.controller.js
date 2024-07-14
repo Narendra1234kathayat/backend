@@ -245,11 +245,11 @@ const getVideoById = asynchandler(async (req, res) => {
         throw new ApiError(400,"Video Do not Exist")
     }
     // // increment Views
-    await Video.findByIdAndUpdate(videoId,{
-        $inc:{
-            views:1
-        }
-    })
+    // await Video.findByIdAndUpdate(videoId,{
+    //     $inc:{
+    //         views:1
+    //     }
+    // })
 
 
     // add this video to user watch history
