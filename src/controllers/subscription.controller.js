@@ -135,15 +135,17 @@ const getSubscribedChannels = asynchandler(async (req, res) => {
                 from: "videos",
                 localField: "_id",
                 foreignField: "owner",
-                as: "video",
+                as: "videos",
               },
             },
             {
               $addFields: {
                 latestVideo: {
-                  $last: "$video",
+                  $last: "$videos",
                 },
               },
+            },{
+              $unwind:"$videos"
             }
           ],
         },
