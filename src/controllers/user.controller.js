@@ -240,7 +240,7 @@ const uppdateAccountDetails = asynchandler(async (req, res) => {
 
 const updateuserAvatar=asynchandler(async (req, res)=> {
 
-  const avatarlocalpath=req.file?.path;
+  const avatarlocalpath=req.file?.filename;
   if(!avatarlocalpath){
     throw new ApiError(404,"avatar is missing");
   }
@@ -248,8 +248,6 @@ const updateuserAvatar=asynchandler(async (req, res)=> {
     $set:{
       avatar:avatarlocalpath
     }
-
-
   },{
     new:true
   }).select("-password");
@@ -258,7 +256,8 @@ const updateuserAvatar=asynchandler(async (req, res)=> {
 })
 
 const updateuserCoverimg=asynchandler(async (req, res)=>{
-  const coverimglocalpath=req.file?.path;
+  const coverimglocalpath=req.file?.filename;
+  console.log(req.file?.filename)
   if(!coverimglocalpath){
     throw new ApiError(404,"coverimge file is missing");
   }

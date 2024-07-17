@@ -30,16 +30,10 @@ const getAllVideos = asynchandler(async (req, res) => {
         sortCriteria[sortBy] = sortType === 'descending' ? -1 : 1;
     } else {
         // Default sorting if not specified
-        sortCriteria.createdAt = 1; // Example: sorting by createdAt descending
-    }
-    if(!filters){
-        filters={};
+        sortCriteria.createdAt = 1; // Example: sorting by createdAt ascending
     }
 
     try {
-    //     console.log("Filters:", filters);
-    //     console.log("Sort Criteria:", sortCriteria);
-
         const videos = await Video.aggregate([
             {
                 $match: filters
@@ -79,21 +73,20 @@ const getAllVideos = asynchandler(async (req, res) => {
             },
             {
                 $limit: limit
-            } 
+            }
         ]);
 
-        // console.log("Fetched Videos:", videos);
-
         if (!videos.length) {
-            throw new ApiError(400, "Channel doesn't exist");
+            throw new ApiError(400, "No videos found");
         }
 
-        return res.status(200).json(new ApiResponse(200, videos, "User channel fetched successfully"));
+        return res.status(200).json(new ApiResponse(200, videos, "Videos fetched successfully"));
     } catch (err) {
         console.error(err); // Log the error for debugging
         res.status(500).json(new ApiError(500, err.message));
     }
 });
+
 
 
 const publishAVideo = asynchandler(async (req, res) => {
@@ -149,13 +142,17 @@ const publishAVideo = asynchandler(async (req, res) => {
 });
 
 const getVideoById = asynchandler(async (req, res) => {
-    const { videoId } = req.params
-    // console.log(videoId)
-    //TODO: get video by id
-    if(!isValidObjectId(videoId)){
-        throw new ApiError(500,"incorrect videoid ")
+    const { videoId } = req.params;
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(500, "Incorrect video ID");
     }
-    
+
+    const userId = req.user?._id;
+    if (!userId) {
+        throw new ApiError(401, "User not authenticated");
+    }
+
     const video = await Video.aggregate([
         { 
             $match: {
@@ -166,7 +163,7 @@ const getVideoById = asynchandler(async (req, res) => {
             $lookup: {
                 from: "likes",
                 localField: "_id",
-                foreignField: "video",
+                foreignField: "Video",
                 as: "likes"
             }
         },
@@ -181,7 +178,7 @@ const getVideoById = asynchandler(async (req, res) => {
                         $lookup: {
                             from: "subscriptions",
                             localField: "_id",
-                            foreignField: "subscriber",
+                            foreignField: "channel",
                             as: "subscribers"
                         }
                     },
@@ -190,7 +187,7 @@ const getVideoById = asynchandler(async (req, res) => {
                             subscribersCount: { $size: "$subscribers" },
                             isSubscribed: {
                                 $cond: {
-                                    if: { $in: [ new mongoose.Types.ObjectId(req.user?._id), "$subscribers.subscriber"] },
+                                    if: { $in: [new mongoose.Types.ObjectId(userId), "$subscribers.subscriber"] },
                                     then: true,
                                     else: false
                                 }
@@ -200,8 +197,7 @@ const getVideoById = asynchandler(async (req, res) => {
                     {
                         $project: {
                             username: 1,
-                            avatar:1,
-                            
+                            avatar: 1,
                             subscribersCount: 1,
                             isSubscribed: 1
                         }
@@ -215,7 +211,7 @@ const getVideoById = asynchandler(async (req, res) => {
                 owner: { $arrayElemAt: ["$owner", 0] },
                 isLiked: {
                     $cond: {
-                        if: { $in: [ new mongoose.Types.ObjectId(req.user._id), "$likes.likedBy"] },
+                        if: { $in: [new mongoose.Types.ObjectId(userId), "$likes.likedBy"] },
                         then: true,
                         else: false
                     }
@@ -224,8 +220,7 @@ const getVideoById = asynchandler(async (req, res) => {
         },
         {
             $project: {
-                "videoFile":1,
-                
+                videoFile: 1,
                 title: 1,
                 description: 1,
                 views: 1,
@@ -234,39 +229,33 @@ const getVideoById = asynchandler(async (req, res) => {
                 comments: 1,
                 owner: 1,
                 likeCount: 1,
-                isLiked: 1
+                isLiked: 1,
+                isSubscribed: 1
             }
         }
     ]);
 
-
-
-    if(!video){
-        throw new ApiError(400,"Video Do not Exist")
+    if (!video || video.length === 0) {
+        throw new ApiError(400, "Video does not exist");
     }
-    // // increment Views
-    // await Video.findByIdAndUpdate(videoId,{
-    //     $inc:{
-    //         views:1
-    //     }
-    // })
 
-
-    // add this video to user watch history
-    await User.findByIdAndUpdate(req.user?._id, {
-        $addToSet: {
-            watchHistory: videoId
+    // Increment views
+    await Video.findByIdAndUpdate(videoId, {
+        $inc: {
+            views: 1
         }
     });
 
-    return res
-    .status(200)
-    .json(new ApiResponse(
-        400,
-        video[0],
-        "Video Fetched"
-    ))
-})
+    // Add this video to user watch history
+    await User.findByIdAndUpdate(userId, {
+        $addToSet: {
+            watchhistory: videoId
+        }
+    });
+
+    return res.status(200).json(new ApiResponse(200, video[0], "Video fetched"));
+});
+
 
 const updateVideo = asynchandler(async (req, res) => {
     const { videoId } = req.params;

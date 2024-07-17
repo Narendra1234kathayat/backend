@@ -22,10 +22,11 @@ const toggleSubscription = asynchandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, { subscribed: false }, "successful"));
   }
-  await Subscription.create({
+ const sub= await Subscription.create({
     subscriber: req.user?._id,
     channel: channelId,
   });
+  console.log(subs);
 
   return res
     .status(200)

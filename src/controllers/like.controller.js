@@ -1,8 +1,7 @@
 import mongoose,{isValidObjectId} from "mongoose";
 import { asynchandler } from "../utils/asynchandler.js";
-import { aggregatePaginate } from "mongoose-aggregate-paginate-v2";
+// import { aggregatePaginate } from "mongoose-aggregate-paginate-v2";
 import {Like} from "../models/like.model.js";
-import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 
