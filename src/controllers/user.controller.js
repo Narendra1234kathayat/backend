@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -221,22 +222,34 @@ const getCurrentuser = asynchandler(async (req, res) => {
 });
 const uppdateAccountDetails = asynchandler(async (req, res) => {
   const { fullname, email } = req.body;
+
   if (!fullname || !email) {
-    throw new ApiError(401, "credential are required");
+    throw new ApiError(401, "Credentials are required");
   }
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        fullname,
-        email: email,
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          fullname,
+          email,
+        },
       },
-    },
-    { new: true }
-  ).select("-password");
-  return res.status(200)
-  .json(new ApiResponse(200,user,"ACCOUNT DETAIL UPDATED SUCCESSFULLY"));
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    // console.log(user);
+
+    return res.status(200).json(new ApiResponse(200, user, "Account detail updated successfully"));
+  } catch (error) {
+    return res.status(error.statusCode || 500).json(new ApiResponse(error.message,"Internal Server Error"));
+  }
 });
+
 
 const updateuserAvatar=asynchandler(async (req, res)=> {
 
@@ -257,7 +270,7 @@ const updateuserAvatar=asynchandler(async (req, res)=> {
 
 const updateuserCoverimg=asynchandler(async (req, res)=>{
   const coverimglocalpath=req.file?.filename;
-  console.log(req.file?.filename)
+  // console.log(req.file?.filename)
   if(!coverimglocalpath){
     throw new ApiError(404,"coverimge file is missing");
   }
@@ -343,50 +356,58 @@ const getUserChannelProfile=asynchandler(async (req,res)=>{
 
 })
 
-const getWatchHistory=asynchandler(async(req,res)=>{
-  const user=User.aggregate([
-    {
-      $match:{
-        _id:new mongoose.Types.ObjectId(req.user.id),
+const getWatchHistory = asynchandler(async (req, res) => {
+  try {
+    // console.log(req.user?._id);
+    const user = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(req.user?._id),
+        },
+      },
+      {
+        $lookup: {
+          from: "videos",
+          localField: "watchhistory",
+          foreignField: "_id",
+          as: "watchhistory",
+          pipeline: [
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {
+                      fullname: 1,
+                      username: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $addFields: {
+                owner: {
+                  $first: "$owner",
+                },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+    // console.log(user[0].watchhistory)
 
-      }
+    return res.status(200).json(new ApiResponse(200, user[0].watchhistory, "Watched history fetched successfully"));
+  } catch (error) {
+    return res.status(500).json(new ApiResponse(500, null, "Error fetching watched history"));
+  }
+});
 
-    },{  
-      $lookup:{
-        from:"videos",
-        localField:"watchhistory",
-        foreignField:"_id",
-        as:"watchhistory",
-        pipeline:[
-          {
-            $lookup:{
-              from:"users",
-              localField:"owner",
-              foreignField:"_id",
-              as:"owner",
-              pipeline:[
-                {
-                  $project:{
-                    fullname:1,
-                    username:1,
-                    avatar:1
-                  }
-                }
-              ]
-            }
-          },{
-            $addFields:{
-              owner:{
-                $first:"$owner"
-              }
-            }
-          }
-        ]
-      }
-    }
-  ])
-  return res.status(200).status(res.ApiResponse(200,user[0].watchhistory,"watched history fetched successfully"));
-})
 
 
 export {
