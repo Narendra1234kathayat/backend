@@ -19,9 +19,10 @@ const getAllVideos = asynchandler(async (req, res) => {
     if (query) {
         filters.title = { $regex: query, $options: 'i' }; // Case-insensitive regex search
     }
+   
 
     if (userId) {
-        filters.owner = userId; // Assuming owner refers to userId
+        filters.owner = new mongoose.Types.ObjectId(userId); // Assuming owner refers to userId
     }
 
     // Sorting
@@ -86,8 +87,6 @@ const getAllVideos = asynchandler(async (req, res) => {
         res.status(500).json(new ApiError(500, err.message));
     }
 });
-
-
 
 const publishAVideo = asynchandler(async (req, res) => {
     const { title, description} = req.body
@@ -337,7 +336,6 @@ const deleteVideo = asynchandler(async (req, res) => {
     // Respond to the client
     return res.status(200).json(new ApiResponse(200, deletedvideo, "Successfully deleted the video."));
 });
-
 
 const togglePublishStatus = asynchandler(async (req, res) => {
     const { videoId } = req.params;

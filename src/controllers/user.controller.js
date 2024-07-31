@@ -289,7 +289,7 @@ const updateuserCoverimg=asynchandler(async (req, res)=>{
 
 const getUserChannelProfile=asynchandler(async (req,res)=>{
   const {username}=req.params;
-  console.log(req.params);
+  // console.log(req.params);
   if(!username){
     throw new ApiError(400,"username is missing");
   }
