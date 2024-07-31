@@ -8,12 +8,12 @@ const port = 5050;
 // import { fileURLToPath } from "url";
 // import path from "path";
 
-// const corsOptions = {
-//   origin:  "http://localhost:5173", // Use environment variable for frontend URL
-//   credentials: true, // This allows cookies to be sent and received
-// };
+const corsOptions = {
+  origin:  "http://localhost:5173", // Use environment variable for frontend URL
+  credentials: true, // This allows cookies to be sent and received
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(express.static("./public/temp"));
 app.use(express.json({ limit: "16kb" }));
