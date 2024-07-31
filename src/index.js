@@ -9,8 +9,8 @@ const port = 5050;
 // import path from "path";
 
 const corsOptions = {
-  origin: "http://localhost:5173", // specify your frontend URL here
-  credentials: true, // this allows cookies to be sent and received
+  origin:  "http://localhost:5173", // Use environment variable for frontend URL
+  credentials: true, // This allows cookies to be sent and received
 };
 
 app.use(cors(corsOptions));
