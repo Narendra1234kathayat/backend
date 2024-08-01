@@ -12,6 +12,12 @@ const corsOptions = {
   credentials: true, // This allows cookies to be sent and received
 };
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 app.use(cors(corsOptions));
 app.use(express.static("./public/temp"));
 app.use(express.json({ limit: "16kb" }));
