@@ -119,15 +119,15 @@ const loginInUser = asynchandler(async (req, res) => {
 
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "Strict", // Helps mitigate CSRF attacks
+   // sameSite: "", // Helps mitigate CSRF attacks
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     
   };
 
   return res
     .status(200)
-    .cookie("accesstoken", accesstoken, options)
-    .cookie("refreshtoken", refreshtoken, options)
+    .cookie("accesstoken", accesstoken)
+    .cookie("refreshtoken", refreshtoken)
     .json(
       new ApiResponse(
         200,

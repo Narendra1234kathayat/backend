@@ -10,6 +10,7 @@ const port = 5050;
 const corsOptions = {
   origin: "http://localhost:5173", // Use environment variable for frontend URL
   credentials: true, // This allows cookies to be sent and received
+  secure:true
 };
 
 app.use((req, res, next) => {
