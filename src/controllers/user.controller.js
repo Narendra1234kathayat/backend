@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import writeLog from "../writeLog.js"
+
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -16,10 +18,10 @@ const generateAccessAndRefreshToken = async (userId) => {
 
     return { accesstoken, refreshtoken };
   } catch (error) {
-    throw ApiError(
+   return res.status(500).json( ApiError(
       500,
       "something went wrong while generating access and refresh token"
-    );
+    ))
   }
 };
 
@@ -85,7 +87,7 @@ const registerUser = asynchandler(async (req, res) => {
 
 const loginInUser = asynchandler(async (req, res) => {
   const { username, password, email } = req.body;
-
+  writeLog("info", `recieved login info",${req.method} ${req.url}`)
   if (!username && !email) {
     throw new ApiError(
       400,
