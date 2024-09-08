@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = 5050;
@@ -21,7 +22,11 @@ app.use((req, res, next) => {
 });
 
 app.use(cors(corsOptions));
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Serve static files
 app.use('/temp', express.static(path.join(__dirname, 'public', 'temp')));
 
 app.use(express.json({ limit: "16kb" }));
