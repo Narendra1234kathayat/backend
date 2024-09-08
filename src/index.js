@@ -3,6 +3,7 @@ import connectDB from "./db/index.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 const app = express();
 const port = 5050;
@@ -20,7 +21,9 @@ app.use((req, res, next) => {
 });
 
 app.use(cors(corsOptions));
-app.use(express.static("./public/temp"));
+
+app.use('/temp', express.static(path.join(__dirname, 'public', 'temp')));
+
 app.use(express.json({ limit: "16kb" }));
 app.use(cookieParser());
 
